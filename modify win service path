@@ -1,0 +1,44 @@
+@echo off
+REM 批处理文件用于修改服务的可执行文件路径
+
+REM 检查是否以管理员权限运行
+:checkPrivileges
+net session >nul 2>&1
+if %errorLevel% == 0 (
+    goto main
+) else (
+    echo This script requires administrator privileges.
+    pause
+    exit /b
+)
+
+:main
+REM 在这里设置服务名称和新的可执行文件路径
+set "SERVICE_NAME=RayLinkService"
+set "NEW_PATH=D:\\rayvision\\remote_desktop\\out-screen\\bin\\Release\\RayLinkService.exe"
+
+REM 显示当前路径并提示用户确认
+echo Modifying service '%SERVICE_NAME%' executable path to:
+echo %NEW_PATH%
+echo.
+
+REM 确认用户操作
+set /p "confirm=Do you want to continue? (y/n): "
+if /I "%confirm%" neq "y" (
+    echo Operation canceled.
+    exit /b
+)
+
+REM 停止服务
+echo Stopping the service...
+sc stop %SERVICE_NAME%
+
+REM 修改注册表中的 ImagePath
+reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\%SERVICE_NAME%" /v ImagePath /t REG_EXPAND_SZ /d "%NEW_PATH%" /f
+
+REM 启动服务
+echo Starting the service...
+sc start %SERVICE_NAME%
+
+echo Service path has been updated successfully.
+pause
