@@ -1,0 +1,25 @@
+@echo off
+setlocal
+
+set SERVICE_NAME=xxService
+set PROCESS_NAME=xx.exe
+
+:: 停止服务
+net stop %SERVICE_NAME%
+
+:: 获取服务的进程 ID
+for /f "tokens=3" %%i in ('sc queryex %SERVICE_NAME% ^| findstr "PID"') do set SERVICE_PID=%%i
+
+:: 结束服务的进程树
+if defined SERVICE_PID (
+    echo Ending process tree for service PID %SERVICE_PID%
+    taskkill /F /T /PID %SERVICE_PID%
+) else (
+    echo Service is not running or not found.
+)
+
+:: 结束普通进程
+echo Ending process %PROCESS_NAME%
+taskkill /F /IM %PROCESS_NAME%
+
+endlocal
